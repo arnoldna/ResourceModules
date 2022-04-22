@@ -4,9 +4,6 @@
   "parameters": {
     "name": {
       "value": "validation-rg"
-    },
-    "enabledefaulttelemetry": {
-      "value": false
     }
   }
 }
