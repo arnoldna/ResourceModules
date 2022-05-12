@@ -101,7 +101,7 @@ param tags object = {}
   'External'
   'Internal'
 ])
-param virtualNetworkType string = 'None'
+param virtualNetworkType string = 'Internal'
 
 @description('Optional. Resource ID of the diagnostic log analytics workspace.')
 param diagnosticWorkspaceId string = ''
