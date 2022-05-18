@@ -42,6 +42,12 @@ This module deploys an API management service.
 | `publisherEmail` | string | The email address of the owner of the service. |
 | `publisherName` | string | The name of the owner of the service. |
 
+**Conditional parameters**
+| Parameter Name | Type | Default Value | Description |
+| :-- | :-- | :-- | :-- |
+| `publicIpAddressId` | string | `''` | Public Standard SKU IP V4 based IP address to be associated with Virtual Network deployed service in the region. Supported only for Developer and Premium SKU being deployed in Virtual Network. Required if virtualNetworkType set to anything but 'none' |
+| `subnetResourceId` | string | `''` | The full resource ID of a subnet in a virtual network to deploy the API Management service in. Required if virtualNetworkType set to anything but 'none' |
+
 **Optional parameters**
 | Parameter Name | Type | Default Value | Allowed Values | Description |
 | :-- | :-- | :-- | :-- | :-- |
@@ -79,12 +85,11 @@ This module deploys an API management service.
 | `roleAssignments` | array | `[]` |  | Array of role assignment objects that contain the 'roleDefinitionIdOrName' and 'principalId' to define RBAC role assignments on this resource. In the roleDefinitionIdOrName attribute, you can provide either the display name of the role definition, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11' |
 | `sku` | string | `'Developer'` | `[Consumption, Developer, Basic, Standard, Premium]` | The pricing tier of this API Management service. |
 | `skuCount` | int | `1` | `[1, 2]` | The instance size of this API Management service. |
-| `subnetResourceId` | string | `''` |  | The full resource ID of a subnet in a virtual network to deploy the API Management service in. |
 | `subscriptions` | _[subscriptions](subscriptions/readme.md)_ array | `[]` |  | Subscriptions. |
 | `systemAssignedIdentity` | bool | `False` |  | Enables system assigned managed identity on the resource. |
 | `tags` | object | `{object}` |  | Tags of the resource. |
 | `userAssignedIdentities` | object | `{object}` |  | The ID(s) to assign to the resource. |
-| `virtualNetworkType` | string | `'None'` | `[None, External, Internal]` | The type of VPN in which API Management service needs to be configured in. None (Default Value) means the API Management service is not part of any Virtual Network, External means the API Management deployment is set up inside a Virtual Network having an internet Facing Endpoint, and Internal means that API Management deployment is setup inside a Virtual Network having an Intranet Facing Endpoint only. |
+| `virtualNetworkType` | string | `'Internal'` | `[None, External, Internal]` | The type of VPN in which API Management service needs to be configured in. None (Default Value) means the API Management service is not part of any Virtual Network, External means the API Management deployment is set up inside a Virtual Network having an internet Facing Endpoint, and Internal means that API Management deployment is setup inside a Virtual Network having an Intranet Facing Endpoint only. |
 | `zones` | array | `[]` |  | A list of availability zones denoting where the resource needs to come from. |
 
 

@@ -10,6 +10,12 @@
         },
         "publisherName": {
             "value": "<<namePrefix>>-az-amorg-x-001"
+        },
+        "publicIpAddressId": {
+            "value": "/subscriptions/<<subscriptionId>>/resourceGroups/validation-rg/providers/Microsoft.Network/publicIPAddresses/adp-<<namePrefix>>-az-pip-min-api"
+        },
+        "subnetResourceId": {
+            "value": "/subscriptions/<<subscriptionId>>/resourceGroups/validation-rg/providers/Microsoft.Network/virtualNetworks/adp-<<namePrefix>>-az-vnet-x-001/subnets/<<namePrefix>>-az-subnet-x-001"
         }
     }
 }

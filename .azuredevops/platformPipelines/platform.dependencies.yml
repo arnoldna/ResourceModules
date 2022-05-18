@@ -532,6 +532,15 @@ stages:
             - path: $(dependencyPath)/$(resourceType)/parameters/apgw.parameters.json
               templateFilePath: $(templateFilePath)
               displayName: App Gateway Public IP
+            - path: $(dependencyPath)/$(resourceType)/parameters/api.parameters.json
+              templateFilePath: $(templateFilePath)
+              displayName: API Management Public IP
+            - path: $(dependencyPath)/$(resourceType)/parameters/api.min.parameters.json
+              templateFilePath: $(templateFilePath)
+              displayName: API Management Min Public IP
+            - path: $(dependencyPath)/$(resourceType)/parameters/api.max.parameters.json
+              templateFilePath: $(templateFilePath)
+              displayName: API Management Max Public IP
             - path: $(dependencyPath)/$(resourceType)/parameters/bas.parameters.json
               templateFilePath: $(templateFilePath)
               displayName: Bastion Public IP

@@ -748,6 +748,9 @@ jobs:
         parameterFilePaths:
           [
             'apgw.parameters.json',
+            'api.parameters.json',
+            'api.max.parameters.json',
+            'api.min.parameters.json',
             'bas.parameters.json',
             'lb.parameters.json',
             'lb.min.parameters.json',

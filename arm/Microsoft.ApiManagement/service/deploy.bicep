@@ -89,7 +89,7 @@ param sku string = 'Developer'
 ])
 param skuCount int = 1
 
-@description('Optional. The full resource ID of a subnet in a virtual network to deploy the API Management service in.')
+@description('Conditional. The full resource ID of a subnet in a virtual network to deploy the API Management service in. Required if virtualNetworkType set to anything but \'none\'')
 param subnetResourceId string = ''
 
 @description('Optional. Tags of the resource.')
@@ -129,29 +129,42 @@ param newGuidValue string = newGuid()
 
 @description('Optional. APIs.')
 param apis array = []
+
 @description('Optional. API Version Sets.')
 param apiVersionSets array = []
+
 @description('Optional. Authorization servers.')
 param authorizationServers array = []
+
 @description('Optional. Backends.')
 param backends array = []
+
 @description('Optional. Caches.')
 param caches array = []
+
 @description('Optional. Identity providers.')
 param identityProviders array = []
+
 @description('Optional. Named values.')
 param namedValues array = []
+
 @description('Optional. Policies.')
 param policies array = []
+
 @description('Optional. Portal settings.')
 param portalSettings array = []
+
 @description('Optional. Products.')
 param products array = []
+
 @description('Optional. Subscriptions.')
 param subscriptions array = []
 
 @description('Optional. The name of the diagnostic setting, if deployed.')
 param diagnosticSettingsName string = '${name}-diagnosticSettings'
+
+@description('Conditional. Public Standard SKU IP V4 based IP address to be associated with Virtual Network deployed service in the region. Supported only for Developer and Premium SKU being deployed in Virtual Network. Required if virtualNetworkType set to anything but \'none\'')
+param publicIpAddressId string = ''
 
 var diagnosticsLogs = [for category in diagnosticLogCategoriesToEnable: {
   category: category
@@ -212,9 +225,14 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2021-08-01' = {
     enableClientCertificate: enableClientCertificate ? true : null
     disableGateway: disableGateway
     virtualNetworkType: virtualNetworkType
-    virtualNetworkConfiguration: !empty(subnetResourceId) ? json('{"subnetResourceId": "${subnetResourceId}"}') : null
-    apiVersionConstraint: !empty(minApiVersion) ? json('{"minApiVersion": "${minApiVersion}"}') : null
+    virtualNetworkConfiguration: !empty(subnetResourceId) ? {
+      subnetResourceId: subnetResourceId
+    } : null
+    apiVersionConstraint: !empty(minApiVersion) ? {
+      minApiVersion: minApiVersion
+    } : null
     restore: restore
+    publicIpAddressId: !empty(publicIpAddressId) ? publicIpAddressId : null
   }
 }
 
