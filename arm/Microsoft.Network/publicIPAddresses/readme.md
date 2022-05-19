@@ -46,6 +46,11 @@
 | `tags` | object | `{object}` |  | Tags of the resource. |
 | `zones` | array | `[]` |  | A list of availability zones denoting the IP allocated for the resource needs to come from. |
 
+**Optioanl parameters**
+| Parameter Name | Type | Description |
+| :-- | :-- | :-- |
+| `dnsSettings` | object | Contains FQDN of the DNS record associated with the public IP address. |
+
 
 ### Parameter Usage: `tags`
 

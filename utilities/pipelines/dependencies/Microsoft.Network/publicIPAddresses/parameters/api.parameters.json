@@ -10,6 +10,11 @@
     },
     "publicIPAllocationMethod": {
       "value": "Static"
+    },
+    "dnsSettings": {
+      "value": {
+        "domainNameLabel": "adp-<<namePrefix>>-az-pip-x-api"
+      }
     }
   }
 }

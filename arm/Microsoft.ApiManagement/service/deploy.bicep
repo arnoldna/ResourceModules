@@ -124,6 +124,7 @@ param diagnosticLogCategoriesToEnable array = [
 param diagnosticMetricsToEnable array = [
   'AllMetrics'
 ]
+
 @description('Optional. Necessary to create a new GUID.')
 param newGuidValue string = newGuid()
 

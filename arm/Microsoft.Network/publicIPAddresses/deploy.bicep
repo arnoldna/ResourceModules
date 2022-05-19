@@ -60,6 +60,9 @@ param diagnosticEventHubName string = ''
 @description('Optional. Specify the type of lock.')
 param lock string = 'NotSpecified'
 
+@description('Optioanl. Contains FQDN of the DNS record associated with the public IP address.')
+param dnsSettings object = {}
+
 @description('Optional. Location for all resources.')
 param location string = resourceGroup().location
 
@@ -145,6 +148,7 @@ resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
     publicIPPrefix: !empty(publicIPPrefixResourceId) ? publicIPPrefix : null
     idleTimeoutInMinutes: 4
     ipTags: []
+    dnsSettings: !empty(dnsSettings) ? dnsSettings : null
   }
 }
 
