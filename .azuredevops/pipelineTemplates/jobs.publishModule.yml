@@ -45,7 +45,6 @@
 
 parameters:
   # Pipeline-related parameters
-  checkoutRepositories: ''
   displayName: 'Publishing'
   serviceConnection: '$(serviceConnection)'
   poolName: '$(poolName)'
@@ -92,11 +91,7 @@ jobs:
       # [Checkout Repositories] task(s)
       #--------------------------------
       - checkout: self
-      - ${{ if ne(parameters.checkoutRepositories, '') }}:
-          - ${{ each checkoutRepository in parameters.checkoutRepositories }}:
-              - checkout: ${{ checkoutRepository }}
-                fetchDepth: 1 # the depth of commits to ask Git to fetch; if not set defaults to no limit
-                path: 's/${{ checkoutRepository }}'
+        fetchDepth: 0
 
       # [Agent] Prepare environment
       #----------------------------
@@ -119,28 +114,6 @@ jobs:
             # Set agent up
             Set-EnvironmentOnAgent -PSModules $Modules
 
-      # [Multi Repo] Support task
-      #--------------------------
-      - task: PowerShell@2
-        displayName: Handle Multi-Repo Invocation
-        inputs:
-          targetType: inline
-          pwsh: true
-          script: |
-            # ---------------------------- #
-            # HANDLE MULTI-REPO INVOCATION #
-            # ---------------------------- #
-
-            # Handle multiple-repositories
-            if( "${{ join(';',parameters.checkoutRepositories) }}".length -gt 0) {
-              Write-Verbose "Multi-Repo Checkout" -Verbose
-              $modulePath = Join-Path '$(System.DefaultWorkingDirectory)' '$(modulesRepository)' '${{ parameters.modulePath }}'
-            } else {
-              Write-Verbose "No Multi-Repo Checkout" -Verbose
-              $modulePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}'
-            }
-            Write-Output "##vso[task.setvariable variable=ENVMODULEPATH]$modulePath"
-
       # [Universal Artifact-feed publish] task(s)
       #------------------------------------------
       - task: PowerShell@2
@@ -159,9 +132,9 @@ jobs:
             . (Join-Path '$(System.DefaultWorkingDirectory)' '$(pipelineFunctionsPath)' 'resourcePublish' 'Publish-ModuleToUniversalArtifactFeed.ps1')
 
             #Prioritizing the bicep file
-            $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.bicep'
+            $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.bicep'
             if (-not (Test-Path $TemplateFilePath)) {
-              $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.json'
+              $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.json'
             }
 
             $functionInput = @{
@@ -176,7 +149,7 @@ jobs:
 
             # Publish the modified child resources
             foreach ($ModuleToPublish in $ModulesToPublish) {
-              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/arm/')[-1]).Split('/deploy.')[0]
+              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/modules/')[-1]).Split('/deploy.')[0]
               Write-Host "##[group]$(' - [{0}] [{1}]' -f $RelPath, $ModuleToPublish.Version)"
 
               $functionInput = @{
@@ -218,9 +191,9 @@ jobs:
             . (Join-Path '$(System.DefaultWorkingDirectory)' '$(pipelineFunctionsPath)' 'resourcePublish' 'Publish-ModuleToTemplateSpec.ps1')
 
             #Prioritizing the bicep file
-            $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.bicep'
+            $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.bicep'
             if (-not (Test-Path $TemplateFilePath)) {
-              $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.json'
+              $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.json'
             }
 
             $functionInput = @{
@@ -235,7 +208,7 @@ jobs:
 
             # Publish the modified child resources
             foreach ($ModuleToPublish in $ModulesToPublish) {
-              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/arm/')[-1]).Split('/deploy.')[0]
+              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/modules/')[-1]).Split('/deploy.')[0]
               Write-Host "##[group]$(' - [{0}] [{1}]' -f $RelPath, $ModuleToPublish.Version)"
 
               $functionInput = @{
@@ -255,28 +228,32 @@ jobs:
 
       # [private bicep registry publish] task(s)
       #-------------------------------------------
-      - task: AzurePowerShell@5
+      - task: AzureCLI@2
         displayName: 'Publish module to private bicep registry'
         condition: and(
           eq(variables['bicepRegistryDoPublish'], true),
           succeeded()
           )
-        enabled: true
         inputs:
+          addSpnToEnvironment: true
           azureSubscription: '${{ parameters.serviceConnection }}'
-          azurePowerShellVersion: ${{ parameters.azurePowerShellVersion }}
-          preferredAzurePowerShellVersion: ${{ parameters.preferredAzurePowerShellVersion }}
-          pwsh: true
-          ScriptType: InlineScript
-          inline: |
+          scriptType: pscore
+          scriptLocation: inlineScript
+          inlineScript: |
+            # Log into Az-PowerShell context
+            . $profile # Load PS-Profile configuration
+            $SecuredPassword = ConvertTo-SecureString -AsPlainText -String $env:servicePrincipalKey
+            $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $env:servicePrincipalId, $SecuredPassword
+            Connect-AzAccount -ServicePrincipal -TenantId $env:tenantId -Credential $Credential
+
             # Load used functions
             . (Join-Path '$(System.DefaultWorkingDirectory)' '$(pipelineFunctionsPath)' 'resourcePublish' 'Get-ModulesToPublish.ps1')
             . (Join-Path '$(System.DefaultWorkingDirectory)' '$(pipelineFunctionsPath)' 'resourcePublish' 'Publish-ModuleToPrivateBicepRegistry.ps1')
 
             #Prioritizing the bicep file
-            $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.bicep'
+            $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.bicep'
             if (-not (Test-Path $TemplateFilePath)) {
-              $TemplateFilePath = Join-Path -Path '$(ENVMODULEPATH)' -ChildPath 'deploy.json'
+              $TemplateFilePath = Join-Path '$(System.DefaultWorkingDirectory)' '${{ parameters.modulePath }}' 'deploy.json'
             }
 
             $functionInput = @{
@@ -291,15 +268,15 @@ jobs:
 
             # Publish the modified child resources
             foreach ($ModuleToPublish in $ModulesToPublish) {
-              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/arm/')[-1]).Split('/deploy.')[0]
+              $RelPath = (($ModuleToPublish.TemplateFilePath).Split('/modules/')[-1]).Split('/deploy.')[0]
               Write-Host "##[group]$(' - [{0}] [{1}]' -f $RelPath, $ModuleToPublish.Version)"
 
               $functionInput = @{
-                TemplateFilePath         = $ModuleToPublish.TemplateFilePath
+                TemplateFilePath        = $ModuleToPublish.TemplateFilePath
                 BicepRegistryName       = '${{ parameters.bicepRegistryName }}'
                 BicepRegistryRgName     = '${{ parameters.bicepRegistryRgName }}'
                 BicepRegistryRgLocation = '${{ parameters.bicepRegistryRgLocation }}'
-                ModuleVersion            = $ModuleToPublish.Version
+                ModuleVersion           = $ModuleToPublish.Version
               }
 
               Write-Verbose "Invoke Publish-ModuleToPrivateBicepRegistry with" -Verbose
